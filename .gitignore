@@ -1,0 +1,6 @@
+*.bak
+.#*
+*.log
+*.asv
+*.OLD
+/results
