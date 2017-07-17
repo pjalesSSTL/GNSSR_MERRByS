@@ -75,9 +75,11 @@ function downloadData(startDateTimeString, stopDateTimeString, dataTypesToDownlo
     cd(ftpobj);  sf=struct(ftpobj);  sf.jobject.enterLocalPassiveMode();
     
     %% Download requested data L1b
+    filesCountL1b = 0;
     if sum(strcmp(dataTypesToDownload, 'L1B'))
         for dataIdListIdx = 1:length(dataIdList)
             %% Setup to process this dataId
+            filesCount = 0;
             dataId = dataIdList{dataIdListIdx};
             fprintf('Getting L1B: %s\n', dataId);
             
@@ -96,19 +98,25 @@ function downloadData(startDateTimeString, stopDateTimeString, dataTypesToDownlo
                 try
                     cd(ftpobj, urlFolder);
                     mget(ftpobj, fileName, localPath);
+                    filesCount = filesCount + 1;
                 catch
-                    fprintf('No data available for %s\n', url);
+                    % Don't print errror as no data is sometimes expected
+                    % fprintf('No data available for %s%s\n', urlFolder, fileName);
+                    filesCountL1b = filesCountL1b - 1;
                 end
+                filesCountL1b = filesCountL1b + 1;
             end
             
-            fprintf('  Done\n');
+            fprintf('  Done - Got %d files\n', filesCount);
         end
     end
     
     %% Download requested data L2_FDI
+    filesCountL2FDI = 0;
     if sum(strcmp(dataTypesToDownload, 'L2_FDI'))
         for dataIdListIdx = 1:length(dataIdList)
             %% Setup to process this dataId
+            filesCount = 0;
             dataId = dataIdList{dataIdListIdx};
             fprintf('Getting L2_FDI: %s\n', dataId);
             
@@ -127,15 +135,22 @@ function downloadData(startDateTimeString, stopDateTimeString, dataTypesToDownlo
                 try
                     cd(ftpobj, urlFolder);
                     mget(ftpobj, fileName, localPath);
+                    filesCount = filesCount + 1;
                 catch
-                    fprintf('    Nothing for %s\n', url);
+                    % Don't print errror as no data is sometimes expected
+                    % fprintf('No data available for %s%s\n', urlFolder, fileName);
+                    filesCountL2FDI = filesCountL2FDI - 1;
                 end
+                filesCountL2FDI = filesCountL2FDI + 1;
             end
             
-            fprintf('  Done\n');
+            fprintf('  Done - Got %d files\n', filesCount);
         end
     end
     
     %Close connection to the FTP server
     close(ftpobj);
+    
+    fprintf('Downloaded %d L1B files\n', filesCountL1b)
+    fprintf('Downloaded %d L2_FDI files\n', filesCountL2FDI)
 end
