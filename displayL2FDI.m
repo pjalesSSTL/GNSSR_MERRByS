@@ -158,7 +158,7 @@ function displayL2FDI(startDateTimeString, stopDateTimeString, basePath)
     for i = 1:length(uniqueLocations)
         location = uniqueLocations(i);
         addCount = sum(linearisedLocation == location, 'omitnan');
-        addValue = sum(vals(linearisedLocation == location, 'omitnan'));
+        addValue = sum(vals(linearisedLocation == location), 'omitnan');
         % Add to the running average map
         obj.dataMap.accum(location) = obj.dataMap.accum(location) + addValue;
         obj.dataMap.count(location) = obj.dataMap.count(location) + addCount;
