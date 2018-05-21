@@ -1,4 +1,4 @@
-function displayL2FDI(startDateTimeString, stopDateTimeString, basePath)
+function displayL2FDI(startDateTimeString, stopDateTimeString, basePath, l2TypeString)
 %displayL2FDI Function to display L2 data over a date time range
 %
 %   Tested on Matlab 2016a MS. Windows
@@ -35,11 +35,11 @@ function displayL2FDI(startDateTimeString, stopDateTimeString, basePath)
 % startDateTimeString: Format yyyyMMddTHH:mm:ss.FFF  Hours from:[03, 09, 15, 21]
 % stopDateTimeString: Format yyyyMMddTHH:mm:ss.FFF Hours from:[03, 09, 15, 21]
 % basePath: location of the MERRByS data
+% l2TypeString: The name of the L2 data used in the paths e.g. 'L2_FDI'
 
     %Add required paths
     if ~isdeployed
         addpath('include');
-        addpath('include/Map');
         addpath('include/m_map');
         addpath('include/Plotting');
         addpath('include/Utils');
@@ -48,9 +48,10 @@ function displayL2FDI(startDateTimeString, stopDateTimeString, basePath)
     %%Debug - if no inputs are given use these defaults
     if ~exist('startDateTimeString', 'var')
         startDateTimeString = '20160909T21:00:00'; % Format yyyyMMddTHH:mm:ss.FFF
-        stopDateTimeString =  '20161010T03:00:00'; % Format yyyyMMddTHH:mm:ss.FFF
+        stopDateTimeString =  '20171010T03:00:00'; % Format yyyyMMddTHH:mm:ss.FFF
         %basePath = 'C:\aaLIVE_c\temp\';
         basePath = 'Q:/DataOutputPrerelease0p7_test/';
+        l2TypeString = 'L2_CBRE_v0_5';
     end
 
     %% Parse inputs - Running from command line so inputs are strings
@@ -90,8 +91,8 @@ function displayL2FDI(startDateTimeString, stopDateTimeString, basePath)
         %% Setup to process this dataId
         dataId = dataIdList{dataIdListIdx};
         
-        paths = MERRBySDataReader.GetPaths(basePath, dataId, '');
-        netCDFFileName = [paths.L2FDI, 'L2_FDI.nc'];
+        paths = MERRBySDataReader.GetPaths(basePath, dataId, 'L1B', l2TypeString);
+        netCDFFileName = [paths.L2FDI, l2TypeString, '.nc'];
         
         if exist(netCDFFileName, 'file')
             IntegrationMidPointTime = [IntegrationMidPointTime; ncread(netCDFFileName, 'IntegrationMidPointTime')];
@@ -127,7 +128,11 @@ function displayL2FDI(startDateTimeString, stopDateTimeString, basePath)
     end
     
     %% Display on map
+    if isdeployed
+        figHandle = sfigure('Visible', 'off');
+    else
     figHandle = sfigure('Visible', 'on');
+    end
     
     %Set up the map
     m_proj('Miller Cylindrical','lat',[-90 90]);
@@ -157,18 +162,28 @@ function displayL2FDI(startDateTimeString, stopDateTimeString, basePath)
     uniqueLocations = unique(linearisedLocation);
     for i = 1:length(uniqueLocations)
         location = uniqueLocations(i);
-        addCount = sum(linearisedLocation == location, 'omitnan');
+        addCount = sum(isfinite(vals(linearisedLocation == location)));
         addValue = sum(vals(linearisedLocation == location), 'omitnan');
         % Add to the running average map
-        obj.dataMap.accum(location) = obj.dataMap.accum(location) + addValue;
-        obj.dataMap.count(location) = obj.dataMap.count(location) + addCount;
+        try
+            obj.dataMap.accum(location) = obj.dataMap.accum(location) + addValue;
+            obj.dataMap.count(location) = obj.dataMap.count(location) + addCount;
+        catch
+        end
+        
     end
-    %Plot the map
+    
+
+    fprintf('\nCreating 2D map');
+    %Plot the map ready to save
+    %Turns the long 1D array of locations back into a 2D array
     dataMap2D = reshape(obj.dataMap.accum ./ obj.dataMap.count, obj.dataMap.sizeLon, obj.dataMap.sizeLat)';    
     alphaMap = isfinite(dataMap2D);
+    %Creates a coloured image with pixels only where there is data
     imagesc(obj.dataMap.scaleLon, obj.dataMap.scaleLat, dataMap2D, 'AlphaData', alphaMap);
     colormap('jet');
     hcb = colorbar;
+    clim = [0 25];
     set(gca,'ydir','normal');
     m_coast('Color', 'k');
     ylabel(hcb, 'Wind speed (m/s)');

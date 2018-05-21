@@ -128,11 +128,7 @@ if exist(fileNameBlackbodyNadir, 'file')
 
     fprintf('  Variables-------------------:\n');
     for i = 1:length(ncinfoBlackbodyNadir.Variables)
-        if length(ncinfoBlackbodyNadir.Variables(i).Attributes) > 1
-            fprintf('      %26s| %s\n', ncinfoBlackbodyNadir.Variables(i).Name, ncinfoBlackbodyNadir.Variables(i).Attributes(2).Value);
-        else
-            fprintf('      %26s|\n', ncinfoBlackbodyNadir.Variables(i).Name);
-        end
+        fprintf('<%s>, ', ncinfoBlackbodyNadir.Variables(i).Name);
     end    
 else
     fprintf('File not found %s\n', fileNameBlackbodyNadir);
@@ -180,11 +176,7 @@ if exist(fileNameDirectSignalPower, 'file')
 
     fprintf('  Variables-------------------:\n');
     for i = 1:length(ncinfoDirectSignalPower.Variables)
-        if length(ncinfoDirectSignalPower.Variables(i).Attributes) > 1
-            fprintf('      %26s| %s\n', ncinfoDirectSignalPower.Variables(i).Name, ncinfoDirectSignalPower.Variables(i).Attributes(2).Value);
-        else
-            fprintf('      %26s|\n', ncinfoDirectSignalPower.Variables(i).Name);
-        end
+        fprintf('<%s>, ', ncinfoDirectSignalPower.Variables(i).Name);
     end
 else
     fprintf('File not found %s\n', fileNameDirectSignalPower);

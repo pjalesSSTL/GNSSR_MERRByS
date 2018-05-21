@@ -3,7 +3,7 @@ function downloadData(startDateTimeString, stopDateTimeString, dataTypesToDownlo
 %
 % startDateTimeString: Format yyyyMMddTHH:mm:ss.FFF Hours from:[03, 09, 15, 21]
 % stopDateTimeString: Format yyyyMMddTHH:mm:ss.FFF Hours from:[03, 09, 15, 21]
-% dataTypesToDownload: Cell array {'L1B', 'L2_FDI'}
+% dataTypesToDownload: Cell array {'L1B', 'L2_FDI', 'L2_CBRE_v0_5'}
 % destinationBasePath: path to local destination
 % username, pasword: FTP server credentials
 
@@ -142,6 +142,43 @@ function downloadData(startDateTimeString, stopDateTimeString, dataTypesToDownlo
                     filesCountL2FDI = filesCountL2FDI - 1;
                 end
                 filesCountL2FDI = filesCountL2FDI + 1;
+            end
+            
+            fprintf('  Done - Got %d files\n', filesCount);
+        end
+    end
+    
+    %% Download requested data L2_CBRE
+    filesCountL2CBRE = 0;
+    if sum(strcmp(dataTypesToDownload, 'L2_CBRE_v0_5'))
+        for dataIdListIdx = 1:length(dataIdList)
+            %% Setup to process this dataId
+            filesCount = 0;
+            dataId = dataIdList{dataIdListIdx};
+            fprintf('Getting L2_CBRE_v0_5: %s\n', dataId);
+            
+            localPath = [destinationBasePath, 'L2_CBRE_v0_5/', dataId, '/'];
+            %Create local directories
+            if ~exist(localPath, 'dir')
+                mkdir(localPath)
+            end
+
+            % Files to download
+            files = {'L2_CBRE_v0_5.nc'};
+            for fileIdx = 1:length(files)
+                fileName = files{fileIdx};
+                
+                urlFolder = ['/Data/L2_CBRE_v0_5/', dataId, '/'];
+                try
+                    cd(ftpobj, urlFolder);
+                    mget(ftpobj, fileName, localPath);
+                    filesCount = filesCount + 1;
+                catch
+                    % Don't print errror as no data is sometimes expected
+                    % fprintf('No data available for %s%s\n', urlFolder, fileName);
+                    filesCountL2CBRE = filesCountL2CBRE - 1;
+                end
+                filesCountL2CBRE = filesCountL2CBRE + 1;
             end
             
             fprintf('  Done - Got %d files\n', filesCount);

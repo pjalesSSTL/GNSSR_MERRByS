@@ -201,8 +201,12 @@ classdef MERRBySDataReader
             end
             %close the open resources
             if ~isempty(ME)
+                if exist('ncid', 'var')
                 netcdf.close(ncid);
                 rethrow(ME);
+                else
+                    error(['File exists but unable to open: ', metadataPath])
+                end
             end
 
             % Read the DDM file if requested
@@ -236,7 +240,7 @@ classdef MERRBySDataReader
         end
 
         
-        function [paths] = GetPaths(basePath, dataId, L1B_tag)
+        function [paths] = GetPaths(basePath, dataId, L1B_tag, L2_tag)
         % GetPaths Determine paths to the components of the dataset
         % Inputs:
         %     basePath:      The folder location of the data
@@ -260,6 +264,9 @@ classdef MERRBySDataReader
             if ~exist('L1B_tag', 'var')
                 L1B_tag = 'L1B';
             end
+            if ~exist('L2_tag', 'var')
+                L2_tag = 'L2_FDI';
+            end
             
             dataPath = [basePath, L1B_tag, '/', dataId, '/'];
         
@@ -278,13 +285,13 @@ classdef MERRBySDataReader
             paths.kml = [basePath, 'L1B_Catalogue/', dataId, '/KML/'];
             paths.kmz = [basePath, 'L1B_Catalogue/', '/', dataId, '/', MERRBySDataReader.DataIdWithDotSeparators(dataId), '.kmz'];
             %L2
-            paths.L2FDI = [basePath, 'L2_FDI', '/', dataId, '/'];
+            paths.L2FDI = [basePath, L2_tag, '/', dataId, '/'];
             %L2 catalogue
-            paths.L2FDICatalogue = [basePath, 'L2_FDI_Catalogue', '/', dataId, '/'];
-            paths.L2FDISummaryImages = [basePath, 'L2_FDI_Catalogue', '/', dataId, '/SummaryImages/'];
-            paths.L2FDIKML = [basePath, 'L2_FDI_Catalogue', '/', dataId, '/KML/'];
-            paths.L2FDIKMZ = [basePath, 'L2_FDI_Catalogue', '/', dataId, '/', MERRBySDataReader.DataIdWithDotSeparators(dataId), '.kmz'];
-            paths.L2FDISearchTracks = [basePath, 'L2_FDI_Catalogue', '/', dataId, '/SearchTracks/'];
+            paths.L2FDICatalogue = [basePath, L2_tag, '_Catalogue', '/', dataId, '/'];
+            paths.L2FDISummaryImages = [basePath, L2_tag, '_Catalogue', '/', dataId, '/SummaryImages/'];
+            paths.L2FDIKML = [basePath, L2_tag, '_Catalogue', '/', dataId, '/KML/'];
+            paths.L2FDIKMZ = [basePath, L2_tag, '_Catalogue', '/', dataId, '/', MERRBySDataReader.DataIdWithDotSeparators(dataId), '.kmz'];
+            paths.L2FDISearchTracks = [basePath, L2_tag, '_Catalogue', '/', dataId, '/SearchTracks/'];
         end
         
         function [ddmDataForTrack, ddmTrackInfo] = ReadL1BDDMFile(ddmsPath, metadata, trackIdList)
